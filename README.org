@@ -1,4 +1,6 @@
 
+#+OPTIONS: ^:{}
+
 * Introduction
 
 The [[https://github.com/emin63/ox_mon][ox_mon]] package provides some tools to keep monitor your machine to
