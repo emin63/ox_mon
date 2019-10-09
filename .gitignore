@@ -19,6 +19,6 @@ test_log.txt
 .coverage
 .vscode/
 *.DS_Store
-venv_ox_update
+venv*
 /latest_logs
 __pycache__
