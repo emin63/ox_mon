@@ -22,3 +22,4 @@ test_log.txt
 venv*
 /latest_logs
 __pycache__
+ox_mon.egg-info

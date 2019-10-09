@@ -1,10 +1,31 @@
 
+#+OPTIONS: ^:{}
+
 * Introduction
 
 The [[https://github.com/emin63/ox_mon][ox_mon]] package provides some tools to keep monitor your machine to
 keep it up to date, free of viruses, and generally working properly.
 
+Basically, there are lots of little monitoring and checking tasks you
+may find yourself needing to do. You could write a separate script for
+each such task, but it would be nice to have some basic scaffolding for things
+like notifications, logging, testing, and so on to simplify machine
+monitoring. Better yet, by having a common framework many developers
+can contribute small snippets of such tools that work in a similar way
+to simplify life for everyone.
+
+Once you install =ox_mon= as described in the [[id:sec-installation][Installation]] section,
+you can do something like
+#+BEGIN_EXAMPLE
+ox_mon check <thing> [<OPTIONS]
+#+END_EXAMPLE
+to run various checks discussed in the [[id:sec-checkers][Checkers]] section with a
+consistent reporting system described in the [[id:sec-notifiers][Notifiers]] section.
+
 * Installation
+  :PROPERTIES:
+  :ID:       sec-installation
+  :END:
 
 You can install via the usual =pip install ox_mon=. If you want to
 install and be able to edit your installation, you may consider doing
@@ -18,6 +39,10 @@ ox_mon --help
 #+END_SRC
 
 ** Checkers
+  :PROPERTIES:
+  :ID:       sec-checkers
+  :END:
+
 
 One of the most useful commands is =ox_mon check=. If you try
 #+BEGIN_SRC sh
@@ -43,6 +68,30 @@ ox_mon check apt --notifier echo --age-in-days 7
 would not notify you provided that you have done =apt update= within 7
 days. If your packages are stale, the notification will just print a
 message. See the [[id:sec-notifiers][Notifiers section]] for notification options.
+
+*** Checker: disk
+
+The =disk= checker will check your system to see if the disk is too
+full. If so, you will be notified as described in the [[id:sec-notifiers][Notifiers]]
+section.
+
+You can control the notification methods and how full the disk is
+allowed to be before it triggers an alarm. For example, doing
+#+BEGIN_SRC sh
+ox_mon check disk --notifier loginfo --max-used-pct 5
+#+END_SRC
+would not notify you using python's =logging.INFO= stream (which
+usually goes to =stderr=) if your disk is more than =5%= full.
+
+*** Checker: anti-virus
+
+The =clamscan= checker will use [[https://www.clamav.net/][ClamAV]] (assuming you have it
+installed) to virus scan your system. You can control the target
+location to scan via something like
+#+BEGIN_SRC sh
+ox_mon check clamscan --target $HOME
+#+END_SRC
+
 
 ** Notifiers
    :PROPERTIES:
