@@ -1,9 +1,9 @@
 Introduction
 ============
 
-The `ox\ :sub:`mon` <https://github.com/emin63/ox_mon>`__ package
-provides some tools to keep monitor your machine to keep it up to date,
-free of viruses, and generally working properly.
+The `ox\_mon <https://github.com/emin63/ox_mon>`__ package provides some
+tools to keep monitor your machine to keep it up to date, free of
+viruses, and generally working properly.
 
 Basically, there are lots of little monitoring and checking tasks you
 may find yourself needing to do. You could write a separate script for
