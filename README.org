@@ -1,0 +1,77 @@
+
+* Introduction
+
+The [[https://github.com/emin63/ox_mon][ox_mon]] package provides some tools to keep monitor your machine to
+keep it up to date, free of viruses, and generally working properly.
+
+* Installation
+
+You can install via the usual =pip install ox_mon=. If you want to
+install and be able to edit your installation, you may consider doing
+something like =pip install --editable ox_mon=.
+
+* Usage
+
+You can see the list of possible commands via
+#+BEGIN_SRC sh
+ox_mon --help
+#+END_SRC
+
+** Checkers
+
+One of the most useful commands is =ox_mon check=. If you try
+#+BEGIN_SRC sh
+ox_mon check --help
+#+END_SRC
+you will see a list of possible checkers you can run. These all use
+the same general syntax for things like how to notify an administrator
+if issues are found while also checker specific customization.
+
+*** Checker: apt
+
+The =apt= checker will check your Ubuntu installation to see if you
+have the latest security updates installed. If you do, then nothing
+happens. If you have not done =apt update= recently or you do *NOT*
+have the latest security packages installed, then you will be notified.
+
+You can control the notification
+methods and how many days have passed since you did =apt update= using
+command line options. For example, doing
+#+BEGIN_SRC sh
+ox_mon check apt --notifier echo --age-in-days 7
+#+END_SRC
+would not notify you provided that you have done =apt update= within 7
+days. If your packages are stale, the notification will just print a
+message. See the [[id:sec-notifiers][Notifiers section]] for notification options.
+
+** Notifiers
+   :PROPERTIES:
+   :ID:       sec-notifiers
+   :END:
+
+There are a variety of ways to get notifications:
+
+  - =echo=: Just echoes notification to stdout.
+  - =email=: Will send you an email provided you specify the following:
+    - =OX_MON_EMAIL_TO=: A comma separated list of email
+      addresses (e.g., =foo@exmaple.com= or
+      =foo@exmaple.com,bar@example.com=) to send email to. If not set,
+      will attempt to lookup from environment variable.
+    - =OX_MON_EMAIL_FROM=: Sending email address. If not set,
+      will attempt to lookup from environment variable.
+    - =OX_MON_GMAIL_PASSWD=: A password to use if you want to use
+      gmail as the SMTP relay to send mail from. This password should
+      correspond to the username in =OX_MON_EMAIL_FROM=.
+    - =OX_MON_SES_PROFILE=: If provided and email notifier is
+      requested, will use this to send email via AWS SES. If not
+      set, will attempt lookup from environment.
+    - *IMPORTANT*: Either =OX_MON_SES_PROFILE= or
+      =OX_MON_GMAIL_PASSWD= is required to send emails.
+  - =loginfo=: Will use Python's =logging.info= to send
+    notification. This can be useful if you do not want the
+    notifications in stdout but in stderr.
+
+
+
+
+
