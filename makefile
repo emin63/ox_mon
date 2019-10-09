@@ -55,6 +55,7 @@ clean:
 	find . -name '*.pyi' -print -exec rm {} \;
 	find . -name archived_logs -print -exec rm -fr {} \;
 	find . -name latest_logs -print -exec rm -fr {} \;
+	@echo "done cleaning"
 
 # Note that we set pipefail on the command since `tee` always returns status 0
 # so we need pipefail if we want this command to fail on test failure.
@@ -68,10 +69,8 @@ lint:
 	pylint --rcfile=.pylintrc --jobs=4 --reports=n ${PYTEST_TARGET} \
            --ignore=${LINT_IGNOR}
 
-# The -P `pwd` forces pythonpath which seems necessary since without
-# it we get strange import errors.
 pytype:
-	pytype ${PYTEST_TARGET} -P `pwd`
+	pytype ${PYTEST_TARGET}
 
 check:
 	${MAKE} lint
