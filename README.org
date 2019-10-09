@@ -14,9 +14,9 @@ to simplify life for everyone.
 
 Once you install =ox_mon= as described in the [[id:sec-installation][Installation]] section,
 you can do something like
-#+BEGIN_EXAMPLE
+#+BEGIN_SRC sh
 ox_mon check <thing> [<OPTIONS]
-#+END_EXAMPLE
+#+END_SRC
 to run various checks discussed in the [[id:sec-checkers][Checkers]] section with a
 consistent reporting system described in the [[id:sec-notifiers][Notifiers]] section.
 
