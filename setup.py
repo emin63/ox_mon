@@ -24,10 +24,11 @@ def get_readme():
 
     return result
 
+
 setup(
     name='ox_mon',
     version=VERSION,
-    description='Tools for updating software..',
+    description='Monitor status, security, and robustness of your machines.',
     long_description=get_readme(),
     url='http://github.com/emin63/ox_mon',
     author='Emin Martinian',
