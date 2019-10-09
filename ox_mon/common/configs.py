@@ -17,9 +17,11 @@ class OxMonOption:
 
 BASIC_OPTIONS = [
     OxMonOption('--notifier', default=['echo'], multiple=True, help=(
-        'Notifier(s) to use (e.g., echo or email or telegram). You can '
+        'Notifier(s) to use (e.g., echo or email or sentry). You can '
         'provide multiple versions of this if you want multiple '
-        'notifiers (e.g., --notifier echo --notifier email).')),
+        'notifiers (e.g., --notifier echo --notifier email). '
+        'Some notifiers will need additional parameters such as '
+        'the DSN (provided with --SENTRY) or email credentials.')),
     OxMonOption('--SENTRY', default=lambda: os.getenv('SENTRY_DSN'),
                 help=('Optional Sentry DSN if you want error reporting '
                       'via sentry.')),

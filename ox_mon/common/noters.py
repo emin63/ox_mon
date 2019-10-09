@@ -51,6 +51,28 @@ class LogInfoNotifier(BasicNotifier):
         logging.info('%s\n%s', subject, msg)
 
 
+class SentryNotifier(BasicNotifier):
+    """Sub-class of notifier to use to notify via sentry.
+    """
+
+    def send(self, subject: str, msg: str):
+        logging.debug('Will capture sentry message for subject: %s', subject)
+        dsn = self.config.sentry
+        if not dsn:
+            raise ValueError('No value for sentry dsn; %s' % (
+                'did you forget --SENTRY <dsn> ?'))
+
+        # pytype gets confused by conditional imports so don't do them
+        # if we are in type checking mode
+        if not typing.TYPE_CHECKING:
+            import sentry_sdk  # pylint: disable=import-error
+            sentry_sdk.init(dsn)
+            sentry_sdk.capture_message('%s\n%s' % (subject, msg))
+        else:
+            raise ValueError('Should not hit TYPE_CHECKING at runtime')
+        logging.debug('Captured sentry message for subject: %s', subject)
+
+
 class EmailNotifier(BasicNotifier):
     """Sub-class of notifier to send messages via email.
     """
@@ -148,6 +170,7 @@ _NDICT = {
     'echo': EchoNotifier,
     'email': EmailNotifier,
     'loginfo': LogInfoNotifier,
+    'sentry': SentryNotifier
 }
 
 
