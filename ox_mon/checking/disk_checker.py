@@ -57,7 +57,8 @@ class SimpleDiskChecker(interface.Checker):
         """
 
         disk_usage = self._get_du()
-        current_percent_usage = (disk_usage.used/disk_usage.free) * 100
+        current_percent_usage = (
+            disk_usage.used/disk_usage.total) * 100
 
         if current_percent_usage > self.config.max_used_pct:
             raise DiskUseTooHigh(
