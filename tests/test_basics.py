@@ -43,21 +43,26 @@ class TestAptShellChecker(unittest.TestCase):
             'check', 'apt', '--notifier', 'echo', '--age-in-days', '0'])
         self.assertEqual(result.exit_code, 1)
 
-    def disk_checker(self, max_pct):  # pylint: disable=no-self-use
+    def disk_checker(  # pylint: disable=no-self-use
+            self, max_pct, tool='shutil'):
         """Simple test of basic disk checker.
         """
         runner = CliRunner()
-        result = runner.invoke(cmd_line.main, [
-            'check', 'disk', '--notifier', 'loginfo',
-            '--max-used-pct', max_pct])
+        my_cmd_line = ['check', 'disk', '--notifier', 'loginfo',
+                       '--max-used-pct', max_pct]
+        if tool:
+            my_cmd_line.extend(['--tool', tool])
+        result = runner.invoke(cmd_line.main, my_cmd_line)
         return result
 
     def test_disk_checker(self):  # pylint: disable=no-self-use
         "Test disk checker success and failure."
         proc = self.disk_checker('99')
         self.assertEqual(proc.exit_code, 0)
-        proc = self.disk_checker('0')
+        proc = self.disk_checker('0', tool='shutil')
         self.assertEqual(proc.exit_code, 1)
+        proc = self.disk_checker('99', tool='psutil')
+        self.assertEqual(proc.exit_code, 0)
 
     def test_clamscan_hit(self):  # pylint: disable=no-self-use
         """Test case where clamscan should find a hit.

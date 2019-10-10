@@ -27,19 +27,39 @@ class SimpleDiskChecker(interface.Checker):
         logging.debug('Making options for %s', cls)
         result = configs.BASIC_OPTIONS + [
             configs.OxMonOption(
+                'tool', default='shutil', help=(
+                    'Tool to use to determine disk usage. Default is '
+                    'shutil which is sometimes flaky. If you install '
+                    'psutil you can provide psutil for better results.')),
+            configs.OxMonOption(
+                'target', default='/', help=(
+                    'Target location to check for usage (e.g., /).')),
+            configs.OxMonOption(
                 'max-used-pct', default=85.0, type=float, help=(
                     'Maximum percentage allowed for disk usage.'))
             ]
+        return result
+
+    def _get_du(self):
+        "Get disk usage based on desired tool."
+
+        if self.config.tool == 'shutil':
+            result = shutil.disk_usage(self.config.target)
+        elif self.config.tool == 'psutil':
+            import psutil
+            result = psutil.disk_usage(self.config.target)
+        else:
+            raise ValueError('Invalid tool "%s"' % self.config.tool)
         return result
 
     def _check(self):
         """Check disk usage.
         """
 
-        loc = "/"
-        disk_usage = shutil.disk_usage(loc)
+        disk_usage = self._get_du()
         current_percent_usage = (disk_usage.used/disk_usage.free) * 100
 
         if current_percent_usage > self.config.max_used_pct:
             raise DiskUseTooHigh(
-                loc, current_percent_usage, self.config.max_used_pct)
+                self.config.target,
+                current_percent_usage, self.config.max_used_pct)
