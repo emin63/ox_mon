@@ -94,7 +94,10 @@ based on this.
         logging.debug('Making options for %s', cls)
         result = configs.BASIC_OPTIONS + [
             configs.OxMonOption('age-in-days', default=7.0, type=float, help=(
-                'Max age in days allowed since last update of apt sources'))
+                'Max age in days allowed since last update of apt sources')),
+            configs.OxMonOption('limit', default=0, type=int, help=(
+                'Max allowed un-installed packages to allow. Default is 0 '
+                'so that any un-installed packages cause an alarm.'))
             ]
         return result
 
@@ -133,7 +136,7 @@ Returns a list of GenericPackageInfo representing pending security updates.
         update_info = self.check_updates()
         pkg_info = self.filter_security_updates(update_info)
 
-        if pkg_info:
+        if pkg_info and len(pkg_info) > self.config.limit:
             raise PackagesNeedUpdating(pkg_info)
 
         return 'No packages need updating.'

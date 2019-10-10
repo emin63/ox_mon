@@ -19,7 +19,7 @@ class TestAptShellChecker(unittest.TestCase):
     def test_apt_shell_checker(self):  # pylint: disable=no-self-use
         """Simple test of basic apt shell checker.
         """
-        my_config = configs.BasicConfig(age_in_days=1e100000,
+        my_config = configs.BasicConfig(age_in_days=1e100000, limit=1e100,
                                         notifier=['loginfo'])
         chk = apt_checker.AptShellChecker(my_config)
         data = chk.check()
@@ -29,8 +29,9 @@ class TestAptShellChecker(unittest.TestCase):
         """Simple test of basic apt shell checker using click CLI runner
         """
         runner = CliRunner()
-        result = runner.invoke(cmd_line.main, [
-            'check', 'apt', '--notifier', 'loginfo', '--notifier', 'echo'])
+        my_cmd = ['check', 'apt', '--notifier', 'loginfo', '--notifier',
+                  'echo', '--age-in-days', 1e10000, '--limit', 10000]
+        result = runner.invoke(cmd_line.main, my_cmd)
         self.assertEqual(result.exit_code, 0)
 
     def test_apt_force_notify(self):  # pylint: disable=no-self-use
