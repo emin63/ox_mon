@@ -60,7 +60,7 @@ class ClamScanShellChecker(interface.Checker):
         try:
             my_fd, log = tempfile.mkstemp(suffix='_clamscan.txt')
             os.close(my_fd)
-            cmd = ['clamscan', f'--log={log}', self.config.target]
+            cmd = ['clamscan', '--log=%s' % log, self.config.target]
             proc = subprocess.run(cmd, check=False)
             if not os.path.exists(log):
                 raise ValueError('Could not find clamscan log at %s' % log)

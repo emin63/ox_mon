@@ -165,6 +165,14 @@ class AptShellChecker(AptChecker):
         if self.config.age_in_days < 0:
             raise ValueError('Cannot have negative age_in_days: %s' % (
                 self.config.age_in_days))
+        if not os.path.exists(self.update_success_file):
+            msg = '\n'.join([
+                'Could not find file %s.' % self.update_success_file,
+                'Have you done "apt install update-notifier-common" and'
+                'also "apt update"? The update-notifier-common package'
+                'is necessary to update the file %s' % (
+                    self.update_success_file)])
+            raise ValueError(msg)
         info = os.stat(self.update_success_file)
         age_in_seconds = time.time() - info.st_mtime
         age_in_days = age_in_seconds / 86400.0

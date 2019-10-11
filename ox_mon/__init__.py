@@ -1,4 +1,4 @@
 """Top-level ox_mon package.
 """
 
-VERSION = '0.2.4'
+VERSION = '0.2.5'
