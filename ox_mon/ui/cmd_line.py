@@ -10,7 +10,9 @@ import click
 
 from ox_mon import VERSION
 from ox_mon.common import configs, exceptions
-from ox_mon.checking import apt_checker, clamav_checker, disk_checker
+from ox_mon.checking import (
+    apt_checker, clamav_checker, disk_checker, file_checker,
+    version_checker)
 
 
 def prep_sentry(dsn):
@@ -135,6 +137,24 @@ def clamscan(sentry, **kwargs):
     "Check virus scan using clamscan."
 
     return generic_command(clamav_checker.ClamScanShellChecker,
+                           sentry, **kwargs)
+
+
+@check.command()
+@add_options(file_checker.SimpleFileChecker.options())
+def filestatus(sentry, **kwargs):
+    "Check file status."
+
+    return generic_command(file_checker.SimpleFileChecker,
+                           sentry, **kwargs)
+
+
+@check.command()
+@add_options(version_checker.SimpleVersionChecker.options())
+def vcmp(sentry, **kwargs):
+    "Compare version of some other command"
+
+    return generic_command(version_checker.SimpleVersionChecker,
                            sentry, **kwargs)
 
 
