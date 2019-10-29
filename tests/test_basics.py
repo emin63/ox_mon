@@ -167,6 +167,16 @@ WARNING:   another virus scanner running, it may get upset.
         self.assertFalse(result.exit_code)
 
         result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--minv', '1.20.13', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20.13")'])
+        self.assertFalse(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--maxv', '1.20', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20")'])
+        self.assertFalse(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
             'check', 'vcmp', '--maxv', '1.20.4', '--cmd', sys.executable,
             '--flags', ':c,print("version 1.20.3")'])
         self.assertFalse(result.exit_code)
