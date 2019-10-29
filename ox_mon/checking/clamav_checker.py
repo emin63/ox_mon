@@ -33,7 +33,11 @@ class ClamScanShellChecker(interface.Checker):
         result = configs.BASIC_OPTIONS + [
             configs.OxMonOption(
                 'target', type=click.Path(exists=True), help=(
-                    'Path to target file or directory to scan.'))
+                    'Path to target file or directory to scan.')),
+            configs.OxMonOption(
+                'clamopts', default=':r', help=(
+                    'Comma separated list of options for clamscan. '
+                    'We replace colons with dashes so e.g., :r becomes -r.'))
             ]
         return result
 
@@ -61,6 +65,9 @@ class ClamScanShellChecker(interface.Checker):
             my_fd, log = tempfile.mkstemp(suffix='_clamscan.txt')
             os.close(my_fd)
             cmd = ['clamscan', '--log=%s' % log, self.config.target]
+            if self.config.clamopts:
+                for item in self.config.clamopts.split(','):
+                    cmd.append(item.replace(':', '-'))
             proc = subprocess.run(cmd, check=False)
             if not os.path.exists(log):
                 raise ValueError('Could not find clamscan log at %s' % log)
