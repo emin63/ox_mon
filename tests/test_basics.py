@@ -1,6 +1,7 @@
 """Some simple basic tests for ox_mon.
 """
 
+import sys
 import os
 import tempfile
 import unittest
@@ -116,6 +117,70 @@ WARNING:   another virus scanner running, it may get upset.
                 'Error: ox_mon unexpected exception',
                 'Error: ox_mon unexpected exception:',
                 'Cannot have negative age_in_days: -2.0'])
+
+    def test_file_checker_exists(self):  # pylint: disable=no-self-use
+        "Test file checker existence test"
+
+        junk_fd, tfile = tempfile.mkstemp()
+        os.close(junk_fd)
+        runner = CliRunner()
+        result = runner.invoke(cmd_line.main, [
+            'check', 'filestatus', '--target', tfile, '--live'])
+        self.assertEqual(result.exit_code, 0)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'filestatus', '--target', tfile, '--dead'])
+        self.assertTrue(result.exit_code)
+        os.remove(tfile)
+
+        self.assertFalse(os.path.exists(tfile))
+        result = runner.invoke(cmd_line.main, [
+            'check', 'filestatus', '--target', tfile])
+        self.assertEqual(result.exit_code, 0)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'filestatus', '--target', tfile, '--dead'])
+        self.assertEqual(result.exit_code, 0)
+
+    def test_version_checker(self):  # pylint: disable=no-self-use
+        "Test verison checker"
+
+        runner = CliRunner()
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--exact', '1.20.3', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20.3")'])
+        self.assertEqual(result.exit_code, 0)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--exact', '1.20.4', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20.3")'])
+        self.assertTrue(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--minv', '1.20.4', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20.3")'])
+        self.assertTrue(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--minv', '1.20.2', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20.3")'])
+        self.assertFalse(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--maxv', '1.20.4', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20.3")'])
+        self.assertFalse(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--maxv', '1.20.2', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20.3")'])
+        self.assertTrue(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--maxv', '1.20.2', '--cmd', sys.executable,
+            '--vre', 'VeRsio',
+            '--flags', ':c,print("VeRsio 1.20.3")'])
+        self.assertTrue(result.exit_code)
 
 
 if __name__ == '__main__':
