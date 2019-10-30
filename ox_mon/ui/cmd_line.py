@@ -13,6 +13,7 @@ from ox_mon.common import configs, exceptions
 from ox_mon.checking import (
     apt_checker, clamav_checker, disk_checker, file_checker,
     version_checker)
+from ox_mon.misc import cmds
 
 
 def prep_sentry(dsn):
@@ -42,6 +43,11 @@ def check():
     "Checking commands."
 
 
+@main.group()
+def gcmd():
+    "General commands."
+
+
 def add_options(olist: typing.List[configs.OxMonOption]):
     """Add options to a click command
 
@@ -64,12 +70,11 @@ def add_options(olist: typing.List[configs.OxMonOption]):
     return _add_options
 
 
-def generic_command(checker_cls: typing.Callable, sentry: str,
+def generic_command(task_cls: typing.Callable, sentry: str,
                     loglevel: str, **kwargs):
     """
 
-    :param checker_cls:    Sub-class of interface.Checker to make a Checker
-                           instance.
+    :param task_cls:       Subclass of interface.OxMonTask to make task class
 
     :param sentry:         String DSN for sentry or None if not using sentry.
 
@@ -80,13 +85,13 @@ def generic_command(checker_cls: typing.Callable, sentry: str,
     ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
     PURPOSE:    Implement boilerplate for command line call of basic
-                checker. Basically, we do the following.
+                task. Basically, we do the following.
 
          1. Setup logging based on loglevel.
          2. Prepare sentry if desired.
          3. Create BasicConfig instance from **kwargs.
-         4. Create checker_cls instance using config.
-         5. Run check method and if an exception is encountered, then
+         4. Create task_cls instance using config.
+         5. Run run method and if an exception is encountered, then
             capture with sentry if desired and return non-zero exit code.
 
 
@@ -99,8 +104,8 @@ def generic_command(checker_cls: typing.Callable, sentry: str,
         capture = prep_sentry(sentry)
     try:
         config = configs.BasicConfig(sentry=sentry, **kwargs)
-        checker = checker_cls(config)
-        checker.check()
+        task = task_cls(config)
+        task.run()
     except exceptions.OxMonAlarm as ox_alarm:
         capture['func'](ox_alarm)
         sys.exit(1)
@@ -164,3 +169,16 @@ def version():
     msg = 'ox_mon version: %s' % VERSION
     click.echo(msg)
     return msg
+
+
+@gcmd.command()
+@add_options(cmds.RawCmd.options())
+def raw(sentry, **kwargs):
+    """Run raw command using ox_mon notification.
+
+This command is helpful in case you want to run a shell script
+or other basic command and use ox_mon to verify that it ran correclty
+with notifications sent if there are problems.
+    """
+
+    return generic_command(cmds.RawCmd, sentry, **kwargs)
