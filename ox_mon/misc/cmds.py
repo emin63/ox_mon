@@ -1,6 +1,7 @@
 """Tasks which are really commands.
 """
 
+import sys
 import logging
 import subprocess
 
@@ -22,39 +23,83 @@ with notifications sent if there are problems.
             configs.OxMonOption(
                 '--cmd', help=('Command to run.')),
             configs.OxMonOption(
-                '--flags', default='', help=(
-                    'Comma separated list of options to pass to --cmd. '
+                '--args', default='', help=(
+                    'Comma separated list of args to pass to --cmd. '
                     'We replace colons with dashes so e.g., :v becomes -v.')),
+            configs.OxMonOption(
+                '--stdout', default='@STDOUT', help=(
+                    'Where to send stdout of the underling command. '
+                    'If you provide @STDOUT then the output from --cmd '
+                    'will go on the standard output stream. You can also '
+                    'provide @STDERR or path to a file or @NULL.')),
+            configs.OxMonOption(
+                '--stderr', default='@STDERR', help=(
+                    'Where to send stderr of the underling command. '
+                    'If you provide @STDERR then the output from --cmd '
+                    'will go on the standard error stream. You can also '
+                    'provide @STDERR or path to a file or @NULL.')),
             configs.OxMonOption(
                 '--shell', default=False, help=(
                     'Whether to run --cmd through the shell.')),
             ]
         return result
 
+    @staticmethod
+    def _make_out_stream(place: str):
+        """Make an output stream from string description.
+
+        :param place:   String which is either path to a file, @STDOUT,
+                        @STDERR, or @NULL.
+
+        ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+        :return:   What should be passed to subprocess.run to make the
+                   output go to desired stream.
+
+        ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
+
+        PURPOSE:   Prepare output stream for subprocess.run
+
+        """
+        if place == '@STDOUT':
+            return sys.stdout
+        if place == '@STDERR':
+            return sys.stderr
+        if place == '@NULL':
+            return subprocess.PIPE
+        result = open(place, 'w')
+        return result
+
     def _do_sub_cmd(self):
         if not self.config.cmd:
             raise ValueError('No value provided for --cmd.')
         cmd = [self.config.cmd]
-        for item in self.config.flags.split(','):
+        for item in self.config.args.split(','):
             cmd.append(item.replace(':', '-'))
-        proc = subprocess.run(cmd, check=False, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE,
-                              shell=self.config.shell)
-        if proc.returncode != 0:
-            stdout = proc.stdout.decode('utf8')
-            stderr = proc.stderr.decode('utf8')
+        stdout = self._make_out_stream(self.config.stdout)
+        stderr = self._make_out_stream(self.config.stderr)
+        try:
+            proc = subprocess.run(cmd, check=False, stdout=stdout,
+                                  stderr=stderr, shell=self.config.shell)
+            logging.debug('Return value for cmd "%s": %s',
+                          cmd, proc.returncode)
+            if proc.returncode != 0:
+                stdout = proc.stdout
+                if hasattr(stdout, 'decode'):
+                    stdout = stdout.decode('utf8')
+                stderr = proc.stderr
+                if hasattr(stderr, 'decode'):
+                    stderr = stderr.decode('utf8')
 
-            raise ValueError('Bad return code %s from %s:\n%s' % (
-                proc.returncode, cmd, (
-                    stdout if stdout else '') + '\n' + (
-                        stderr if stderr else '')))
-
-        # Need to use getattr to avoid strange pytype errors in lines below
-        cmd_out = getattr(proc, 'stdout', None)
-        cmd_out = cmd_out if cmd_out else getattr(
-            proc, 'stderr', None)
-
-        return True
+                raise ValueError('Bad return code %s from %s:\n%s' % (
+                    proc.returncode, cmd, (
+                        stdout if stdout else '') + '\n' + (
+                            stderr if stderr else '')))
+        finally:
+            for item in [stdout, stderr]:
+                if item not in [None, sys.stdout, sys.stderr] and hasattr(
+                        item, 'close'):
+                    item.close()
 
     def _do_task(self):
         return self._do_sub_cmd()
