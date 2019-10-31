@@ -197,14 +197,21 @@ WARNING:   another virus scanner running, it may get upset.
 
         runner = CliRunner()
         result = runner.invoke(cmd_line.main, [
-            'gcmd', 'raw', '--cmd', 'test', '--flags',
+            'gcmd', 'raw', '--cmd', 'test', '--args',
             '1,==,0'])
         self.assertTrue(result.exit_code)
 
+    def test_raw_cmd_more(self):  # pylint: disable=no-self-use
+        "Provide additional tests for raw_cmd which are more complicated."
+
+        tfile = tempfile.mktemp()  # need since tester confuses stdout
+        efile = tempfile.mktemp()  # need since tester confuses stdout
         runner = CliRunner()
         result = runner.invoke(cmd_line.main, [
-            'gcmd', 'raw', '--cmd', 'test', '--flags',
-            '1,==,1'])
+            'gcmd', 'raw', '--cmd', 'test', '--args',
+            '1,==,1', '--stderr', efile, '--stdout', tfile])
+        os.remove(tfile)
+        os.remove(efile)
         self.assertFalse(result.exit_code)
 
 
