@@ -65,6 +65,7 @@ class SentryNotifier(BasicNotifier):
         # pytype gets confused by conditional imports so don't do them
         # if we are in type checking mode
         if not typing.TYPE_CHECKING:
+            # pylint: disable=import-outside-toplevel
             import sentry_sdk  # pylint: disable=import-error
             sentry_sdk.init(dsn)
             sentry_sdk.capture_message('%s\n%s' % (subject, msg))
@@ -149,6 +150,7 @@ class EmailNotifier(BasicNotifier):
         """
         logging.debug('Notifying from send_via_ses: %s', str(self))
         try:
+            # pylint: disable=import-outside-toplevel
             import boto3
         except Exception as problem:  # pylint: disable=broad-except
             logging.error('Unable to import boto3: %s\nIs boto3 installed?',

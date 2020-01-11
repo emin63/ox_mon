@@ -28,7 +28,7 @@ class SimpleVersionChecker(interface.Checker):
                     'Comma separated list of options to pass to --cmd. '
                     'We replace colons with dashes so e.g., :v becomes -v.')),
             configs.OxMonOption(
-                '--vre', default='[0-9]+[.][0-9]+[.]?[0-9]?', help=(
+                '--vre', default='[0-9]+[.][0-9]+[.]?[0-9]*', help=(
                     'Regular expression to find version in --cmd output.'
                     )),
             configs.OxMonOption('--exact', default=None, help=(

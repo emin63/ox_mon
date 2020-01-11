@@ -9,40 +9,40 @@ from ox_mon.common import exceptions
 from ox_mon.common import noters
 
 
-class Checker:
-    """Abstract class representing interface for Checker.
+class OxMonTask:
+    """Abstract class representing interface for ox mon task
 
-Each checker should implement the following interface:
+Each task should implement the following interface:
 
   1. Have an `__init__` method that takes a config object.
-  2. Have a _check method (see docs below).
+  2. Have a _do_task method (see docs below).
   3. Have an options method (see docs below).
 
-With those features implemented, it is easy to turn run checkers in
-a consistent way by creating an instance and running the check method.
+With those features implemented, it is easy to turn run tasks in
+a consistent way by creating an instance and running the run method.
 This can be done either using pure python or through the command line
 as documented elsewhere.
     """
 
-    def _check(self) -> str:
-        """Main method to check system; raise OxMonAlarm if problem found.
+    def _do_task(self) -> str:
+        """Main method to run task; raise OxMonAlarm if problem found.
 
-This method should do whatever it needs to check the status of the system.
+This method should do whatever it needs to execute the monitoring task.
 If everything is OK, it can return a string status message if desired or
 just return None. If problems are found, this should raise an instance
 of OxMonAlarm describing the problem.
 
-That will be caught by the check method and a notification will be ent
+That will be caught by the run method and a notification will be sent
 to the appropriate place.
 
-Users should call `check` which calls this method; do not call this
+Users should call `run` which calls this method; do not call this
 method directlry.
         """
         raise NotImplementedError
 
     @classmethod
     def options(cls):
-        """Return list of configs.OxMonOption for configure this Checker.
+        """Return list of configs.OxMonOption for configure this task.
         """
         raise NotImplementedError
 
@@ -65,14 +65,14 @@ method directlry.
             my_noter = noters.make_notifier(ntype, self.config)
             my_noter.send(subject, msg)
 
-    def check(self):
-        """Run the _check method with notification, etc.
+    def run(self):
+        """Run the _do_task method with notification, etc.
 
         ~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-
 
         """
         try:
-            result = self._check()
+            result = self._do_task()
             return result
         except exceptions.OxMonAlarm as ox_alarm:
             logging.info(
@@ -95,3 +95,26 @@ method directlry.
                         'Error: ox_mon unexpected exception:\n%s' % str(
                             unexpected))
             raise
+
+
+class Checker(OxMonTask):
+    """Abstract class representing interface for Checker.
+
+A Checker is a sub-class of OxMonTask to check something but
+not really modify the system itself. Sub-classes should
+implement the _check method.
+    """
+
+    def _check(self) -> str:
+        """Main method to check system; raise OxMonAlarm if problem found.
+
+This method should do whatever it needs to check the status of the system.
+If everything is OK, it can return a string status message if desired or
+just return None. If problems are found, this should raise an instance
+of OxMonAlarm describing the problem.
+        """
+        raise NotImplementedError
+
+    def _do_task(self) -> str:
+        "Just return _check()"
+        return self._check()

@@ -23,7 +23,7 @@ class TestAptShellChecker(unittest.TestCase):
         my_config = configs.BasicConfig(age_in_days=1e100000, limit=1e100,
                                         notifier=['loginfo'])
         chk = apt_checker.AptShellChecker(my_config)
-        data = chk.check()
+        data = chk.run()
         self.assertEqual(data, 'No packages need updating.')
 
     def test_apt_via_cmdline(self):  # pylint: disable=no-self-use
@@ -167,6 +167,16 @@ WARNING:   another virus scanner running, it may get upset.
         self.assertFalse(result.exit_code)
 
         result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--minv', '1.20.13', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20.13")'])
+        self.assertFalse(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
+            'check', 'vcmp', '--maxv', '1.20', '--cmd', sys.executable,
+            '--flags', ':c,print("version 1.20")'])
+        self.assertFalse(result.exit_code)
+
+        result = runner.invoke(cmd_line.main, [
             'check', 'vcmp', '--maxv', '1.20.4', '--cmd', sys.executable,
             '--flags', ':c,print("version 1.20.3")'])
         self.assertFalse(result.exit_code)
@@ -181,6 +191,28 @@ WARNING:   another virus scanner running, it may get upset.
             '--vre', 'VeRsio',
             '--flags', ':c,print("VeRsio 1.20.3")'])
         self.assertTrue(result.exit_code)
+
+    def test_raw_cmd(self):  # pylint: disable=no-self-use
+        "Test raw cmd"
+
+        runner = CliRunner()
+        result = runner.invoke(cmd_line.main, [
+            'gcmd', 'raw', '--cmd', 'test', '--args',
+            '1,==,0'])
+        self.assertTrue(result.exit_code)
+
+    def test_raw_cmd_more(self):  # pylint: disable=no-self-use
+        "Provide additional tests for raw_cmd which are more complicated."
+
+        tfile = tempfile.mktemp()  # need since tester confuses stdout
+        efile = tempfile.mktemp()  # need since tester confuses stdout
+        runner = CliRunner()
+        result = runner.invoke(cmd_line.main, [
+            'gcmd', 'raw', '--cmd', 'test', '--args',
+            '1,==,1', '--stderr', efile, '--stdout', tfile])
+        os.remove(tfile)
+        os.remove(efile)
+        self.assertFalse(result.exit_code)
 
 
 if __name__ == '__main__':
