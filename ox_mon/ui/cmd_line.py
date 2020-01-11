@@ -13,6 +13,8 @@ from ox_mon.common import configs, exceptions
 from ox_mon.checking import (
     apt_checker, clamav_checker, disk_checker, file_checker,
     version_checker)
+from ox_mon.triggers import file_triggers
+
 from ox_mon.misc import cmds
 
 
@@ -27,6 +29,7 @@ if no DSN is given (e.g., if sentry is not installed).
     # pytype gets confused by conditional imports so don't do them
     # if we are in type checking mode
     if not typing.TYPE_CHECKING:
+        # pylint: disable=import-outside-toplevel
         import sentry_sdk  # pylint: disable=import-error
         sentry_sdk.init(dsn)
         capture = {'name': 'sentry', 'func': sentry_sdk.capture_exception}
@@ -41,6 +44,11 @@ def main():
 @main.group()
 def check():
     "Checking commands."
+
+
+@main.group()
+def trigger():
+    "Trigger commands."
 
 
 @main.group()
@@ -163,6 +171,15 @@ def vcmp(sentry, **kwargs):
                            sentry, **kwargs)
 
 
+@trigger.command()
+@add_options(file_triggers.FileWatchCopy.options())
+def fwatch(sentry, **kwargs):
+    "Watch files in directory and copy them to archive."
+
+    return generic_command(file_triggers.FileWatchCopy,
+                           sentry, **kwargs)
+
+
 @main.command()
 def version():
     "Show version of ox_mon."
@@ -182,3 +199,7 @@ with notifications sent if there are problems.
     """
 
     return generic_command(cmds.RawCmd, sentry, **kwargs)
+
+
+if __name__ == '__main__':
+    main()

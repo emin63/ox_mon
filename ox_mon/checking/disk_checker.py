@@ -46,6 +46,7 @@ class SimpleDiskChecker(interface.Checker):
         if self.config.tool == 'shutil':
             result = shutil.disk_usage(self.config.target)
         elif self.config.tool == 'psutil':
+            # pylint: disable=import-outside-toplevel
             import psutil
             result = psutil.disk_usage(self.config.target)
         else:
