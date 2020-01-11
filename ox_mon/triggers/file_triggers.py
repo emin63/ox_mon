@@ -51,10 +51,9 @@ class FileWatchCopy(interface.OxMonTask):
                 raise ValueError('%s %s must be a directory' % (
                     name, key))
 
-        inote = inotify.adapters.Inotify()
-
-        inote.add_watch(self.config.watch, (
+        inote = inotify.adapters.InotifyTree(self.config.watch, (
             inotify.constants.IN_CLOSE_WRITE |
+            inotify.constants.IN_CREATE |
             inotify.constants.IN_MOVED_TO |
             inotify.constants.IN_MOVE_SELF))
 
@@ -65,6 +64,9 @@ class FileWatchCopy(interface.OxMonTask):
             logging.info("PATH=[%s] FILENAME=[%s] EVENT_TYPES=%s",
                          path, filename, type_names)
             my_fname = os.path.join(path, filename)
+            if os.path.isdir(my_fname):
+                logging.info('Skip directory %s', my_fname)
+                continue
             my_fd, tname = tempfile.mkstemp()
             os.close(my_fd)
             logging.info('Copying %s to temp file %s', my_fname, tname)
