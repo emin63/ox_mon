@@ -85,10 +85,9 @@ class FileWatchCopy(interface.OxMonTask):
                     logging.info('Skip %s since it was deleted', my_fname)
                     result = True
                     break
-                else:
-                    logging.debug('sleep %s to wait for %s deletion',
-                                  stime, my_fname)
-                    time.sleep(stime)
+                logging.debug('sleep %s to wait for %s deletion',
+                              stime, my_fname)
+                time.sleep(stime)
             else:
                 logging.error('Got delete for %s but it was not deleted',
                               my_fname)
