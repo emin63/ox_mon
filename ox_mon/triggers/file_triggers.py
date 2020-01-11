@@ -1,6 +1,7 @@
 """Module for trigger on file related events.
 """
 
+import time
 import tempfile
 import shutil
 import hashlib
@@ -59,30 +60,58 @@ class FileWatchCopy(interface.OxMonTask):
 
         for event in inote.event_gen(yield_nones=False):
             (header, type_names, path, filename) = event
+            self._handle_event(header, type_names, path, filename)
 
-            logging.debug('HEADER=%s', str(header))
-            logging.info("PATH=[%s] FILENAME=[%s] EVENT_TYPES=%s",
-                         path, filename, type_names)
-            my_fname = os.path.join(path, filename)
-            if os.path.isdir(my_fname):
-                logging.info('Skip directory %s', my_fname)
-                continue
-            my_fd, tname = tempfile.mkstemp()
-            os.close(my_fd)
-            logging.info('Copying %s to temp file %s', my_fname, tname)
-            shutil.copy(my_fname, tname)  # copy to tmp file first for safety
-            hash_dir, my_utc = self.prep_destination(tname)
-            if os.path.exists(os.path.join(hash_dir, 'main.data')):
-                logging.info('main data already exists in dir %s', hash_dir)
+    def _handle_event(self, header, type_names, path, filename):
+        logging.debug('HEADER=%s', str(header))
+        logging.info("PATH=[%s] FILENAME=[%s] EVENT_TYPES=%s",
+                     path, filename, type_names)
+        my_fname = os.path.join(path, filename)
+        if self._handled_delete(my_fname, type_names):
+            return
+        if os.path.isdir(my_fname):
+            logging.info('Skip directory %s', my_fname)
+            return
+        my_fd, tname = tempfile.mkstemp()
+        os.close(my_fd)
+        self._do_copy(my_fname, tname)
+
+    @staticmethod
+    def _handled_delete(my_fname: str, type_names) -> bool:
+        result = False
+        if type_names == ['IN_DELETE']:  # only deleting file
+            for stime in [1, 2, 4]:
+                if not os.path.exists(my_fname):
+                    logging.info('Skip %s since it was deleted', my_fname)
+                    result = True
+                    break
+                else:
+                    logging.debug('sleep %s to wait for %s deletion',
+                                  stime, my_fname)
+                    time.sleep(stime)
             else:
-                logging.info('Copying %s to %s', tname,
-                             os.path.join(hash_dir, 'main.data'))
-                shutil.copy(tname, os.path.join(hash_dir, 'main.data'))
+                logging.error('Got delete for %s but it was not deleted',
+                              my_fname)
+        return result
 
-            with open(os.path.join(hash_dir, 'names.txt'), 'a') as my_fd:
-                my_fd.write('%s: %s\n' % (my_utc, my_fname))
-                logging.info('At utc %s saved %s', my_utc, my_fname)
-            os.remove(tname)
+    def _do_copy(self, my_fname, tname):
+        logging.info('Copying %s to temp file %s', my_fname, tname)
+        if not os.path.exists(my_fname):
+            logging.error('Could not copy %s since it is gone!', my_fname)
+            return
+        shutil.copy(my_fname, tname)  # copy to tmp file first for safety
+        hash_dir, my_utc = self.prep_destination(tname)
+        if os.path.exists(os.path.join(hash_dir, 'main.data')):
+            logging.info('main data already exists in dir %s', hash_dir)
+        else:
+            logging.info('Copying %s to %s', tname,
+                         os.path.join(hash_dir, 'main.data'))
+            shutil.copy(tname, os.path.join(hash_dir, 'main.data'))
+
+        with open(os.path.join(hash_dir, 'names.txt'), 'a') as my_fd:
+            my_fd.write('%s: %s\n' % (my_utc, my_fname))
+            logging.info('At utc %s saved %s', my_utc, my_fname)
+        os.remove(tname)
 
     def prep_destination(self, tname: str):
         """Make destination to store file and return hash and utc timestamp.
