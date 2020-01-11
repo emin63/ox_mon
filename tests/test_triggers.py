@@ -48,6 +48,18 @@ class TestBasis(unittest.TestCase):
         self.assertEqual([my_hash], os.listdir(self.archive))
         self.assertEqual(os.listdir(os.path.join(self.archive, my_hash)), [
             'names.txt', 'main.data'])
+        tdir = tempfile.mkdtemp(dir=self.watch)
+        time.sleep(1)
+        with open(os.path.join(tdir, 'test.txt'), 'w') as my_fd:
+            my_fd.write('test.txt')
+        self.assertEqual([my_hash], os.listdir(self.archive))
+        self.assertEqual(os.listdir(os.path.join(self.archive, my_hash)), [
+            'names.txt', 'main.data'])
+        time.sleep(1)
+        content = open(os.path.join(
+            self.archive, my_hash, 'names.txt')).read().strip().split('\n')
+        self.assertEqual(len(content), 4)
+
         proc.kill()
         proc.wait()
 
