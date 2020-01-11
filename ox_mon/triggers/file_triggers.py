@@ -26,6 +26,10 @@ class FileWatchCopy(interface.OxMonTask):
     """Trigger to copy files when they are created or modified.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.max_loops = None
+
     @classmethod
     def options(cls):
         logging.debug('Making options for %s', cls)
@@ -61,6 +65,13 @@ class FileWatchCopy(interface.OxMonTask):
         for event in inote.event_gen(yield_nones=False):
             (header, type_names, path, filename) = event
             self._handle_event(header, type_names, path, filename)
+            if self.max_loops is not None:
+                self.max_loops -= 1
+                if self.max_loops >= 0:
+                    logging.info('%i loops left', self.max_loops)
+                else:
+                    logging.warning('Stopping loop')
+                    break
 
     def _handle_event(self, header, type_names, path, filename):
         logging.debug('HEADER=%s', str(header))
@@ -131,8 +142,11 @@ class FileWatchCopy(interface.OxMonTask):
         """
         my_utc, my_hash = self.make_utc_and_hash(tname)
         hash_dir = os.path.join(self.config.archive, my_hash)
-        if not os.path.exists(hash_dir):
+        try:
             os.mkdir(hash_dir)
+        except FileExistsError as prob:
+            logging.info('Ignoring %s', str(prob))
+        assert os.path.exists(hash_dir)
         return hash_dir, my_utc
 
     @staticmethod

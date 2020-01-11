@@ -1,6 +1,7 @@
 """Some simple basic tests for triggers.
 """
 
+import threading
 import os
 import time
 import logging
@@ -9,6 +10,21 @@ import unittest
 import subprocess
 import shutil
 import tempfile
+import types
+
+from ox_mon.triggers import file_triggers
+
+
+class FWCTestThread(threading.Thread):
+    """Class to run FileWatchCopy in a thread.
+    """
+
+    def __init__(self, fwc):
+        self.fwc = fwc
+        super().__init__()
+
+    def run(self):
+        self.fwc.run()
 
 
 class TestBasis(unittest.TestCase):
@@ -42,7 +58,7 @@ class TestBasis(unittest.TestCase):
             self.proc.wait()
             self.proc = None
 
-    def test_delete(self):  # pylint: disable=no-self-use
+    def check_delete(self):  # pylint: disable=no-self-use
         """Simple test that deletions do not cause trouble.
         """
         tdir = tempfile.mkdtemp(dir=self.watch)
@@ -81,7 +97,12 @@ class TestBasis(unittest.TestCase):
             'names.txt', 'main.data'])
         self.assertTrue(self.proc.returncode is None)
 
-    def test_simple(self):  # pylint: disable=no-self-use
+    def test_delete(self):
+        """Test deletion.
+        """
+        self.check_delete()
+
+    def check_simple(self):  # pylint: disable=no-self-use
         """Simple test of basic triggers
         """
         with open(os.path.join(self.watch, 'test.txt'), 'w') as my_fd:
@@ -103,6 +124,22 @@ class TestBasis(unittest.TestCase):
         content = open(os.path.join(
             self.archive, my_hash, 'names.txt')).read().strip().split('\n')
         self.assertEqual(len(content), 4)
+
+    def test_simple(self):
+        """Test simple checks.
+        """
+        self.check_simple()
+
+    def test_cov(self):
+        """Do tests with loop in thread to get better test coverage.
+        """
+        fwc = file_triggers.FileWatchCopy(config=types.SimpleNamespace(
+            watch=self.watch, archive=self.archive))
+        fwc.max_loops = 3
+        runner = FWCTestThread(fwc)
+        runner.daemon = True
+        runner.start()
+        self.check_delete()
 
 
 if __name__ == '__main__':
