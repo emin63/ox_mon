@@ -27,7 +27,7 @@ PYTEST_IGNORE := ${PYTEST_IGNORE} --ignore=venv_${PROJECT} --ignore=venv
 PYTEST_TARGET = ${PROJECT} tests
 
 # Set the cov target to empflask so we ignore venv
-PYTEST_COV = --cov=ox_mon --cov-report term-missing --cov-fail-under 70
+PYTEST_COV = --cov=ox_mon --cov-report term-missing --cov-fail-under 76
 
 
 PYTEST_FLAGS = -vvv --doctest-modules --doctest-glob='*.md'
