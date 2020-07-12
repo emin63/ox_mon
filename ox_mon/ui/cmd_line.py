@@ -14,6 +14,7 @@ from ox_mon.checking import (
     apt_checker, clamav_checker, disk_checker, file_checker,
     version_checker)
 from ox_mon.triggers import file_triggers
+from ox_mon.backup import simple_backups
 
 from ox_mon.misc import cmds
 
@@ -49,6 +50,11 @@ def check():
 @main.group()
 def trigger():
     "Trigger commands."
+
+
+@main.group()
+def backup():
+    "Backup commands."
 
 
 @main.group()
@@ -177,6 +183,15 @@ def fwatch(sentry, **kwargs):
     "Watch files in directory and copy them to archive."
 
     return generic_command(file_triggers.FileWatchCopy,
+                           sentry, **kwargs)
+
+
+@backup.command()
+@add_options(simple_backups.OxMonRsyncBackup.options())
+def rsync(sentry, **kwargs):
+    "Backup files using rsync"
+
+    return generic_command(simple_backups.OxMonRsyncBackup,
                            sentry, **kwargs)
 
 
