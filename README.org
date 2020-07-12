@@ -22,6 +22,15 @@ ox_mon check <thing> [<OPTIONS]
 to run various checks discussed in the [[id:sec-checkers][Checkers]] section with a
 consistent reporting system described in the [[id:sec-notifiers][Notifiers]] section.
 
+One useful feature of =ox_mon= is that you can sign-up for free for
+the Sentry service at [[https://sentry.io][https://sentry.io]] and either set the environment
+variable =SENTRY_DSN= or provide the =--SENTRY= argument to
+your =ox_mon= commands and get notifications via sentry. This provides
+an easy way to run =ox_mon= commands in cron or other scripts and get
+convenient error notification on failures without having to configure
+a mail server or other tools. 
+
+
 * Installation
   :PROPERTIES:
   :ID:       sec-installation
@@ -92,6 +101,18 @@ location to scan via something like
 ox_mon check clamscan --target $HOME
 #+END_SRC
 
+** Backup
+   :PROPERTIES:
+   :ID:       sec-backup
+   :END:
+
+The =ox_mon backup= command group provides a way to use =ox_mon= for
+backups. Try
+#+BEGIN_SRC sh
+ox_mon backup --help
+#+END_SRC
+
+for information.
 
 ** Notifiers
    :PROPERTIES:
@@ -119,7 +140,10 @@ There are a variety of ways to get notifications:
   - =loginfo=: Will use Python's =logging.info= to send
     notification. This can be useful if you do not want the
     notifications in stdout but in stderr.
-
+  - =sentry=: Will use the Sentry service from [[https://sentry.io][https://sentry.io]].
+    - =SENTRY=: The sentry DSN for the project to notify. The default
+      value for this will be taken from the =SENTRY_DSN= environment
+      variable if it exists.
 
 
 
