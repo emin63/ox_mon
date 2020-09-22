@@ -1,6 +1,7 @@
 """Command line interface to ox_mon.
 """
 
+import pprint
 import traceback
 import sys
 import logging
@@ -15,6 +16,7 @@ from ox_mon.checking import (
     version_checker)
 from ox_mon.triggers import file_triggers
 from ox_mon.backup import simple_backups
+from ox_mon.security import awstools
 
 from ox_mon.misc import cmds
 
@@ -60,6 +62,11 @@ def backup():
 @main.group()
 def gcmd():
     "General commands."
+
+
+@main.group()
+def security():
+    "Security related commands"
 
 
 def add_options(olist: typing.List[configs.OxMonOption]):
@@ -111,6 +118,7 @@ def generic_command(task_cls: typing.Callable, sentry: str,
 
 
     """
+    result = None
     root_logger = logging.getLogger('')
     root_logger.setLevel(getattr(logging, loglevel))
     capture = {'name': 'logging.critical', 'func': logging.critical}
@@ -119,7 +127,7 @@ def generic_command(task_cls: typing.Callable, sentry: str,
     try:
         config = configs.BasicConfig(sentry=sentry, **kwargs)
         task = task_cls(config)
-        task.run()
+        result = task.run()
     except exceptions.OxMonAlarm as ox_alarm:
         capture['func'](ox_alarm)
         sys.exit(1)
@@ -132,6 +140,7 @@ def generic_command(task_cls: typing.Callable, sentry: str,
         capture['func'](problem)
         print(traceback.format_exc())
         sys.exit(2)
+    return result
 
 
 @check.command()
@@ -214,6 +223,38 @@ with notifications sent if there are problems.
     """
 
     return generic_command(cmds.RawCmd, sentry, **kwargs)
+
+
+@security.command()
+@add_options(awstools.AWSShowRules.options())
+def awsrules(sentry, **kwargs):
+    """Show existing AWS network firewall rules.
+    """
+    result = generic_command(awstools.AWSShowRules, sentry, **kwargs)
+    click.echo(pprint.pprint(result))
+
+
+@security.command()
+@add_options(awstools.AWSBlockCmd.options())
+def awsblock(sentry, **kwargs):
+    """Use AWS CLI to block access using network firewall.
+
+You can use this command via something like
+
+ox_mon security awsblock \
+  --block_file rules.txt --rule_start 5 --vpc vpc-somevpc\
+  --profile some-profile --nacl_id acl-someacl --dry-run 1
+
+to read a rules.txt file with one CIDR per line, create a set of DENY
+rules starting from the first empty rule slot after the given --rule_start,
+for the desired AWS VPC/Network ACL.
+    """
+    result = generic_command(awstools.AWSBlockCmd, sentry, **kwargs)
+    if result:
+        if isinstance(result, str):
+            click.echo(result)
+        elif isinstance(result, (list, tuple)):
+            click.echo(str(result))
 
 
 if __name__ == '__main__':
