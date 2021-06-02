@@ -75,7 +75,8 @@ with notifications sent if there are problems.
             raise ValueError('No value provided for --cmd.')
         cmd = [self.config.cmd]
         for item in self.config.args.split(','):
-            cmd.append(item.replace(':', '-'))
+            if item != '':
+                cmd.append(item.replace(':', '-'))
         stdout = self._make_out_stream(self.config.stdout)
         stderr = self._make_out_stream(self.config.stderr)
         try:
