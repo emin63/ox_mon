@@ -26,10 +26,10 @@ IGNORE =
 IGNORE := ${IGNORE} setup.py
 
 # Ignore venv
-IGNORE := ${PYTEST_IGNORE} venv_${PROJECT} venv
+IGNORE := ${IGNORE} venv_${PROJECT} venv
 
+FLAKE8_IGNORE = $(foreach thing,$(IGNORE),--exclude ${thing})
 PYTEST_IGNORE = $(foreach thing,$(IGNORE),--ignore ${thing})
-
 PYLINT_IGNORE = $(foreach thing,$(IGNORE),--ignore ${thing})
 
 
@@ -81,7 +81,7 @@ test:
             ${PYTEST_EXTRA_FLAGS} ${PYTEST_TARGET} 2>&1 | tee ./test_log.txt
 
 lint:
-	flake8 ${PYTEST_TARGET} --exclude=${PYTEST_IGNORE}
+	flake8 ${PYTEST_TARGET} ${FLAKE8_IGNORE}
 	pylint --rcfile=.pylintrc --jobs=4 --reports=n \
            ${PYTEST_TARGET} ${PYLINT_IGNORE}
 
