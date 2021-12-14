@@ -3,22 +3,35 @@ SHELL = /bin/bash
 
 .PHONY: help test test_fails trouble clean help_venv check_env reqs
 
+# Define PROJECT to be the top-level name of your project.
 PROJECT=ox_mon
+
+# Define the minimum coverage precentage allowed
+COV_MIN=78
+
+# Set python executable
+PYTHON=python3
 
 .EXPORT_ALL_VARIABLES:
 
 
 ################################################################
 #                                                              #
-#  PYTEST_IGNORE gets added to for stuff tester should ignore. #
+#  IGNORE gets added to for stuff tester should ignore. #
 #  Note that we need := for assignment to keep appending       #
-PYTEST_IGONRE = 
+
+IGNORE = 
 
 # Ignore setup.py
-PYTEST_IGNORE := ${PYTEST_IGNORE} --ignore=setup.py
+IGNORE := ${IGNORE} setup.py
 
 # Ignore venv
-PYTEST_IGNORE := ${PYTEST_IGNORE} --ignore=venv_${PROJECT} --ignore=venv
+IGNORE := ${PYTEST_IGNORE} venv_${PROJECT} venv
+
+PYTEST_IGNORE = $(foreach thing,$(IGNORE),--ignore ${thing})
+
+PYLINT_IGNORE = $(foreach thing,$(IGNORE),--ignore ${thing})
+
 
 # End PYTEST_IGNORE section                                    #
 #                                                              #
@@ -26,8 +39,9 @@ PYTEST_IGNORE := ${PYTEST_IGNORE} --ignore=venv_${PROJECT} --ignore=venv
 
 PYTEST_TARGET = ${PROJECT} tests
 
-# Set the cov target to empflask so we ignore venv
-PYTEST_COV = --cov=ox_mon --cov-report term-missing --cov-fail-under 78
+# Set the cov target to ${PROJECT} so we ignore venv
+PYTEST_COV = --cov=${PROJECT} --cov-report term-missing \
+  --cov-fail-under ${COV_MIN}
 
 
 PYTEST_FLAGS = -vvv --doctest-modules --doctest-glob='*.md'
@@ -43,15 +57,17 @@ help:
 	@echo "help_venv:      Help on using virtual environments"
 
 reqs:
-	if which pip | grep venv_ ; then echo "updating" ; else \
-            echo "suspicious pip does not look like venv; exit" && exit 1; fi
+	@if which pip | grep venv_ ; then echo "updating" ; else \
+            echo "" && echo "suspicious pip does not look like venv; exit" && \
+            echo "" && echo "Have you sourced your venv?" && \
+            echo "Try 'make help_venv'" && echo "" && exit 1; fi
 	pip install -r requirements.txt
 
 clean:
 	rm -rf .pytype
 	find . -name \*_flymake.py -print -exec rm {} \;
 	find . -name '*~' -print -exec rm {} \;
-	find ox_mon -name '*.pyc' -print -exec rm {} \;
+	find ${PROJECT} -name '*.pyc' -print -exec rm {} \;
 	find . -name '*.pyi' -print -exec rm {} \;
 	find . -name archived_logs -print -exec rm -fr {} \;
 	find . -name latest_logs -print -exec rm -fr {} \;
@@ -65,9 +81,9 @@ test:
             ${PYTEST_EXTRA_FLAGS} ${PYTEST_TARGET} 2>&1 | tee ./test_log.txt
 
 lint:
-	flake8 ${PYTEST_TARGET} --exclude=${LINT_IGNORE}
-	pylint --rcfile=.pylintrc --jobs=4 --reports=n ${PYTEST_TARGET} \
-           --ignore=${LINT_IGNOR}
+	flake8 ${PYTEST_TARGET} --exclude=${PYTEST_IGNORE}
+	pylint --rcfile=.pylintrc --jobs=4 --reports=n \
+           ${PYTEST_TARGET} ${PYLINT_IGNORE}
 
 pytype:
 	pytype ${PYTEST_TARGET}
@@ -85,10 +101,13 @@ test_fails:
             PYTEST_EXTRA_FLAGS="${PYTEST_EXTRA_FLAGS} --last-failed" test
 
 help_venv:
-	@echo "Do 'python -m venv venv_${PROJECT}' to activate virtual env"
+	@echo "You need to setup a python virtual env to install packages to."
+	@echo "Do '${PYTHON} -m venv venv_${PROJECT}' to activate virtual env"
+	@echo "After that, do 'source venv_${PROJECT}/bin/activate'"
+	@echo "to activate your virtual environment."
 
 pypi: README.rst check
-	 python3 setup.py sdist upload -r pypi
+	 ${PYTHON} setup.py sdist upload -r pypi
 
 README.rst: README.org
 	pandoc --from=org --to=rst --output=README.rst README.org
