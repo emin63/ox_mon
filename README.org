@@ -114,6 +114,27 @@ ox_mon backup --help
 
 for information.
 
+** Raw commands
+
+Ideally it is nicer to right your scripts using the =ox_mon= library
+interface since python is often more robust than shell scripts. If you
+have a quick task, however, you can use =gcmd raw= to run a generic
+raw command via something like:
+#+BEGIN_SRC sh
+ox_mon gcmd raw --cmd /bin/ls
+#+END_SRC
+
+You can also provide arguments or options for your raw command by
+using the =--args= option to =gcmd= and using colons instead of dashes
+(one outstanding feature request is to clean-up the colon syntax to
+make this less ugly):
+#+BEGIN_SRC sh
+ox_mon gcmd raw --cmd /bin/ls --args :lt
+#+END_SRC
+
+The benefit of using =gcmd raw= is that you can include sentry or
+other notifiers to report results of the command.
+
 ** Notifiers
    :PROPERTIES:
    :ID:       sec-notifiers
