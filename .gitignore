@@ -4,6 +4,7 @@ TAGS
 /Saved
 /DerivedDataCache
 ghostdriver.log
+*.coverage*
 *~
 *.pyc
 *.opensdf

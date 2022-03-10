@@ -12,7 +12,7 @@ from ox_mon import VERSION
 from ox_mon.common import configs, exceptions
 from ox_mon.checking import (
     apt_checker, clamav_checker, disk_checker, file_checker,
-    version_checker)
+    version_checker, net_checker)
 from ox_mon.triggers import file_triggers
 from ox_mon.backup import simple_backups
 
@@ -165,6 +165,15 @@ def filestatus(sentry, **kwargs):
     "Check file status."
 
     return generic_command(file_checker.SimpleFileChecker,
+                           sentry, **kwargs)
+
+
+@check.command()
+@add_options(net_checker.SimpleURLChecker.options())
+def urlstatus(sentry, **kwargs):
+    "Check URL status."
+
+    return generic_command(net_checker.SimpleURLChecker,
                            sentry, **kwargs)
 
 
