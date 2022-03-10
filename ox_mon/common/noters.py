@@ -56,7 +56,7 @@ class SentryNotifier(BasicNotifier):
     """
 
     def send(self, subject: str, msg: str):
-        logging.debug('Will capture sentry message for subject: %s', subject)
+        logging.info('Will capture sentry message for subject: %s', subject)
         dsn = self.config.sentry
         if not dsn:
             raise ValueError('No value for sentry dsn; %s' % (
@@ -71,7 +71,7 @@ class SentryNotifier(BasicNotifier):
             sentry_sdk.capture_message('%s\n%s' % (subject, msg))
         else:
             raise ValueError('Should not hit TYPE_CHECKING at runtime')
-        logging.debug('Captured sentry message for subject: %s', subject)
+        logging.info('Captured sentry message for subject: %s', subject)
 
 
 class EmailNotifier(BasicNotifier):
