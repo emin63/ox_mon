@@ -1,15 +1,12 @@
 """Some simple basic tests for ox_mon backups
 """
 
-import sys
 import os
 import tempfile
 import unittest
 
 from click.testing import CliRunner
 
-from ox_mon.checking import apt_checker
-from ox_mon.common import configs
 from ox_mon.ui import cmd_line
 
 
@@ -49,7 +46,6 @@ class TestBackups(unittest.TestCase):
             dst_data = open(os.path.join(dst, os.path.basename(src),
                                          name), 'r').read()
             self.assertEqual(src_data, dst_data)
-
 
 
 if __name__ == '__main__':
