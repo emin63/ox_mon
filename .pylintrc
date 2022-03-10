@@ -1,5 +1,5 @@
 
-# pylintrc file for empflask
+# pylintrc file for project
 #
 # This file should be in the top-level empflask directory. That way, when
 # you run pylint on a file inside empflask, it uses this pylintrc to
