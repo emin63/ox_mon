@@ -47,6 +47,13 @@ BASIC_OPTIONS = [
                     'If provided and email notifier is requested, will '
                     'use this to send email via AWS SES. '
                     'If not set, will lookup from environment.')),
+    OxMonOption('--OX_MON_TELEGRAM_BOT', envvar='OX_MON_TELEGRAM_BOT',
+                default=None, help=(
+                    'Telegram bot information as BOT_TOKEN&CHAT_ID.'
+                    'If provided it should be of the form BOT_TOKEN&CHAT_ID '
+                    'where BOT_TOKEN is a Telegram bot token (this starts '
+                    'with a serios of numbers and is obtained from BotFather) '
+                    'and CHAT_ID is the chat to send to.')),
     OxMonOption('--loglevel', default='INFO', type=click.Choice([
         'DEBUG', 'INFO', 'WARNING', 'CRITICAL', 'ERROR']), help=(
             'Root log level to use while running.')),

@@ -8,6 +8,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
+import requests
 
 class BasicNotifier:
     """Basic notifier.
@@ -39,7 +40,7 @@ class EchoNotifier(BasicNotifier):
 
     def send(self, subject: str, msg: str):
         logging.debug('Using notifier %s', str(self))
-        print('%s\n%s' % (subject, msg))
+        print(f'{subject}\n{msg}')
 
 
 class LogInfoNotifier(BasicNotifier):
@@ -50,6 +51,23 @@ class LogInfoNotifier(BasicNotifier):
         logging.debug('Using notifier %s', str(self))
         logging.info('%s\n%s', subject, msg)
 
+
+class TelegramNotifier(BasicNotifier):
+    """Sub-class of notifier to use to Telegram to notify.
+    """
+
+    def send(self, subject: str, msg: str):
+        logging.info('Will send Telegram notification for subject: %s', subject)
+        base_url = 'https://api.telegram.org'
+        bot_token, chat_id = self.config.ox_mon_telegram.split('&')
+        url = f'{base_url}/bot{bot_token}/sendMessage'
+        result = requests.post(url, timeout=90, data={
+            'chat_id': chat_id, 'text': msg})
+        status_code = getattr(result, 'status_code', -1)
+        reason = getattr(result, 'reason', 'unknown')
+        if result.status_code != 200:
+            logging.error('Bad status %s from telegram; reason: %s',
+                          status_code, reason)
 
 class SentryNotifier(BasicNotifier):
     """Sub-class of notifier to use to notify via sentry.
@@ -172,7 +190,8 @@ _NDICT = {
     'echo': EchoNotifier,
     'email': EmailNotifier,
     'loginfo': LogInfoNotifier,
-    'sentry': SentryNotifier
+    'sentry': SentryNotifier,
+    'telegram': TelegramNotifier,
 }
 
 
