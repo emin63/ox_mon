@@ -67,9 +67,22 @@ with notifications sent if there are problems.
             return sys.stderr
         if place == '@NULL':
             return subprocess.PIPE
-        result = open(place, 'w')
+        result = open(place, 'w+')  # w+ means we can read it as well
         return result
 
+    @staticmethod
+    def _pull_data_from_stream(stream) -> str:
+        """Helper to pull data from a stream or string and return string.
+        """
+        if hasattr(stream, 'read'):
+            stream.seek(0)
+            output = stream.read()
+        else:
+            output = stream
+        if hasattr(output, 'decode'):
+            output = output.decode('utf8')
+        return output or ''
+        
     def _do_sub_cmd(self):
         if not self.config.cmd:
             raise ValueError('No value provided for --cmd.')
@@ -85,17 +98,11 @@ with notifications sent if there are problems.
             logging.debug('Return value for cmd "%s": %s',
                           cmd, proc.returncode)
             if proc.returncode != 0:
-                stdout = proc.stdout
-                if hasattr(stdout, 'decode'):
-                    stdout = stdout.decode('utf8')
-                stderr = proc.stderr
-                if hasattr(stderr, 'decode'):
-                    stderr = stderr.decode('utf8')
-
                 raise ValueError('Bad return code %s from %s:\n%s' % (
-                    proc.returncode, cmd, (
-                        stdout if stdout else '') + '\n' + (
-                            stderr if stderr else '')))
+                    proc.returncode, cmd, self._pull_data_from_stream(
+                        proc.stdout or stdout) + '\n' +
+                    self._pull_data_from_stream(proc.stderr or stderr)))
+
         finally:
             for item in [stdout, stderr]:
                 if item not in [None, sys.stdout, sys.stderr] and hasattr(
