@@ -46,11 +46,11 @@ class SimpleFileChecker(interface.Checker):
         """
         if self.config.live:
             if not os.path.exists(target):
-                msg = 'Required file does not exist: %s' % target
+                msg = f'Required file does not exist: {target}'
                 raise UnexpectedFileStatus(msg)
         if self.config.dead:
             if os.path.exists(target):
-                msg = 'Forbidden file present: %s' % target
+                msg = f'Forbidden file present: {target}'
                 raise UnexpectedFileStatus(msg)
 
     def _check_age(self, target):
