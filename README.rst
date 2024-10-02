@@ -1,7 +1,7 @@
 Introduction
 ============
 
-The `ox\_mon <https://github.com/emin63/ox_mon>`__ package provides some
+The `ox_mon <https://github.com/emin63/ox_mon>`__ package provides some
 tools to keep monitor your machine to keep it up to date, free of
 viruses, and generally working properly.
 
@@ -19,19 +19,19 @@ like
 
 .. code:: bash
 
-    ox_mon check <thing> [<OPTIONS]
+   ox_mon check <thing> [<OPTIONS]
 
 to run various checks discussed in the `Checkers <id:sec-checkers>`__
 section with a consistent reporting system described in the
 `Notifiers <id:sec-notifiers>`__ section.
 
 One useful feature of ``ox_mon`` is that you can sign-up for free for
-the Sentry service at `https://sentry.io <https://sentry.io>`__ and
-either set the environment variable ``SENTRY_DSN`` or provide the
-``--SENTRY`` argument to your ``ox_mon`` commands and get notifications
-via sentry. This provides an easy way to run ``ox_mon`` commands in cron
-or other scripts and get convenient error notification on failures
-without having to configure a mail server or other tools.
+the Sentry service at https://sentry.io and either set the environment
+variable ``SENTRY_DSN`` or provide the ``--SENTRY`` argument to your
+``ox_mon`` commands and get notifications via sentry. This provides an
+easy way to run ``ox_mon`` commands in cron or other scripts and get
+convenient error notification on failures without having to configure a
+mail server or other tools.
 
 Installation
 ============
@@ -47,7 +47,7 @@ You can see the list of possible commands via
 
 .. code:: bash
 
-    ox_mon --help
+   ox_mon --help
 
 Checkers
 --------
@@ -56,7 +56,7 @@ One of the most useful commands is ``ox_mon check``. If you try
 
 .. code:: bash
 
-    ox_mon check --help
+   ox_mon check --help
 
 you will see a list of possible checkers you can run. These all use the
 same general syntax for things like how to notify an administrator if
@@ -76,7 +76,7 @@ doing
 
 .. code:: bash
 
-    ox_mon check apt --notifier echo --age-in-days 7
+   ox_mon check apt --notifier echo --age-in-days 7
 
 would not notify you provided that you have done ``apt update`` within 7
 days. If your packages are stale, the notification will just print a
@@ -95,7 +95,7 @@ allowed to be before it triggers an alarm. For example, doing
 
 .. code:: bash
 
-    ox_mon check disk --notifier loginfo --max-used-pct 5
+   ox_mon check disk --notifier loginfo --max-used-pct 5
 
 would not notify you using python's ``logging.INFO`` stream (which
 usually goes to ``stderr``) if your disk is more than ``5%`` full.
@@ -109,7 +109,7 @@ control the target location to scan via something like
 
 .. code:: bash
 
-    ox_mon check clamscan --target $HOME
+   ox_mon check clamscan --target $HOME
 
 Backup
 ------
@@ -119,7 +119,7 @@ backups. Try
 
 .. code:: bash
 
-    ox_mon backup --help
+   ox_mon backup --help
 
 for information.
 
@@ -149,8 +149,7 @@ There are a variety of ways to get notifications:
 -  ``loginfo``: Will use Python's ``logging.info`` to send notification.
    This can be useful if you do not want the notifications in stdout but
    in stderr.
--  ``sentry``: Will use the Sentry service from
-   `https://sentry.io <https://sentry.io>`__.
+-  ``sentry``: Will use the Sentry service from https://sentry.io.
 
    -  ``SENTRY``: The sentry DSN for the project to notify. The default
       value for this will be taken from the ``SENTRY_DSN`` environment
