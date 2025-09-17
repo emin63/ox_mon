@@ -32,7 +32,7 @@ python-dateutil==2.8.2
 pytype==2019.9.6
 PyYAML==6.0
 s3transfer==0.5.0
-sentry-sdk==0.12.3
+sentry-sdk==2.8.0
 six==1.16.0
 toml==0.10.2
 typed-ast==1.5.1
