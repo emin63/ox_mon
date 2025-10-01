@@ -101,12 +101,13 @@ Should be called by _check method an dnot directly.
     def _check_size(self, stat_info, target):
         """Take result of scan system call and check size.
         """
-        if self.config.min_size_kb:
+        min_size_kb = getattr(self.config, 'min_size_kb', None)
+        if min_size_kb:
             stat_info = stat_info if stat_info else os.stat(target)
             size_kb = stat_info.st_size/1000.0
-            if size_kb < self.config.min_size_kb:
+            if size_kb < min_size_kb:
                 msg = (f'File size {size_kb:.3f} KB <'
-                       f' {self.config.min_size_kb:2} KB: {target}')
+                       f' {min_size_kb:2} KB: {target}')
                 raise UnexpectedFileStatus(msg)
 
     def _check(self):
